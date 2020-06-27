@@ -1,5 +1,6 @@
 package de.avensio.graph;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,12 +16,12 @@ public class Graph {
     private Set<Vertex> vertices = new HashSet<>(); // Knoten
     private Set<Edge> edges = new HashSet<>(); // Kanten
     private Set<Graph> connectedComponents = new HashSet<>(); // Zusammenhangskomponenten
-    private int connectedComponentsCount = 1;
+    private int connectedComponentsCount = 0;
     private boolean isDirected = false; // gerichtet/ungerichtet
     private int verticesCount = 0; // Knotenanzahl
     private int edgesCount = 0; // Kantenanzahl
-    private boolean hasCycles = true; // Zyklisch
-    private int cycleCount = 0; // Azyklisch
+    private boolean hasCycles = true; // Zyklisch/Azyklisch
+    private int cycleCount = 0; // Zyklenanzahl
 
     public Graph() {
     }
@@ -31,11 +32,11 @@ public class Graph {
         this.inferDirected();
     }
 
-    public boolean cyclic() {
+    public boolean isCyclic() {
         return this.hasCycles;
     }
 
-    public boolean acyclic() {
+    public boolean isAcyclic() {
         return !this.hasCycles;
     }
 
@@ -53,8 +54,33 @@ public class Graph {
     // Ein ungerichteter Graph G ist zusammenhängend, wenn es zwischen
     // je zwei verschiedenen Knoten in G mindestens einen Weg gibt.
     // Siehe auch Beweis zu Satz 1.1.13
-    private boolean connected() {
-        return true;
+    // @TODO Prüfung auch für gerichtete Graphen
+    public boolean isConnected() {
+        if (this.isDirected()) return false;
+
+        ArrayList<Boolean> connected = new ArrayList<>();
+
+        // Achtung! Schleifen werden hier falsch herum durchlaufen...
+        // .. Erst die erste, dann die zweite... Debuggen gibt Aufschluss
+        for (Vertex vertex1: this.vertices) {
+            for (Vertex vertex2: this.vertices) {
+                // Sind es dieselben Knoten, mache nichts für diesen Knoten
+                if (vertex2.getName() == vertex1.getName()) break;
+
+                for (Edge e: vertex2.getOutgoingEdges()) {
+                    if (e.getTo().getName() == vertex1.getName()) {
+                        connected.add(true);
+                    }
+                }
+
+            }
+        }
+
+        if (connected.size() == this.getVerticesCount()) {
+            return connected.stream().allMatch((element) -> element == true);
+        }
+
+        return false;
     }
 
     /**
@@ -74,8 +100,8 @@ public class Graph {
      */
     // @TODO Bis jetzt werden nur b) und f) abgebildet
     public boolean isTree() {
-        return (this.acyclic() && this.verticesCount - 1 == this.edgesCount)
-            || (this.connected() && this.verticesCount - 1 == this.edgesCount);
+        return (this.isAcyclic() && this.verticesCount - 1 == this.edgesCount)
+            || (this.isConnected() && this.verticesCount - 1 == this.edgesCount);
     }
 
     public Set<Vertex> getVertices() {
@@ -107,9 +133,9 @@ public class Graph {
          * 1.1.11 Satz Sei G = (V, E) ein kreisfreier ungerichteter Graph mit n Knoten, m Kanten
          * und p Zusammenhangskomponenten. Dann gilt n = m + p.
          */
-        if (this.acyclic() && !this.isDirected) {
+        if (this.isAcyclic() && !this.isDirected) {
             this.verticesCount = this.edges.size() + this.connectedComponentsCount;
-        } else if (this.connectedComponentsCount == 1) {
+        } else if (this.connectedComponentsCount == 0 || this.connectedComponentsCount == 1) {
             this.verticesCount = this.vertices.size();
         }
     }
@@ -143,7 +169,7 @@ public class Graph {
     }
 
     public static void main(String[] args) {
-        Graph g = Utils.createDirectedGraph118();
+        Graph g = Factory.createDirectedGraph118();
         for(Vertex x: g.vertices) {
             x.getReachableNeighbours();
             x.indeg();
