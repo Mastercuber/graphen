@@ -102,4 +102,9 @@ public class Vertex {
         System.out.println("Ausgangsgrad (" + this.getName() + "): " + outputDegree);
         return outputDegree;
     }
+
+    @Override
+    public String toString() {
+        return this.getName();
+    }
 }

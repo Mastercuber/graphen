@@ -1,10 +1,9 @@
 package de.avensio.graph;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 // Weg der Länge k durch den Graph -> durchlaufene Kanten zählen nicht Knoten
+
+import java.util.*;
 
 /**
  * Die in dieser Klasse als Kommentare angegebenen Definitionen und Sätze sind aus dem Vorlesungssrkipt zur Vorlesung
@@ -50,20 +49,26 @@ public class Graph {
         return true;
     }
 
+    public boolean isConnected() {
+        return this.isConnected(null);
+    }
+
     // Definition 1.1.2
     // Ein ungerichteter Graph G ist zusammenhängend, wenn es zwischen
     // je zwei verschiedenen Knoten in G mindestens einen Weg gibt.
     // Siehe auch Beweis zu Satz 1.1.13
     // @TODO Prüfung auch für gerichtete Graphen
-    public boolean isConnected() {
-        if (this.isDirected()) return false;
+    public boolean isConnected(Set<Vertex> vertices) {
+        if (vertices == null) vertices = this.vertices;
+        if (this.isDirected() || vertices.size() < 1) return false;
+        if (vertices.size() == 1) return true;
 
         ArrayList<Boolean> connected = new ArrayList<>();
 
         // Achtung! Schleifen werden hier falsch herum durchlaufen...
         // .. Erst die erste, dann die zweite... Debuggen gibt Aufschluss
-        for (Vertex vertex1: this.vertices) {
-            for (Vertex vertex2: this.vertices) {
+        for (Vertex vertex1: vertices) {
+            for (Vertex vertex2: vertices) {
                 // Sind es dieselben Knoten, mache nichts für diesen Knoten
                 if (vertex2.getName() == vertex1.getName()) break;
 
@@ -76,7 +81,7 @@ public class Graph {
             }
         }
 
-        if (connected.size() == this.getVerticesCount()) {
+        if (connected.size() == vertices.size()) {
             return connected.stream().allMatch((element) -> element == true);
         }
 
@@ -152,30 +157,123 @@ public class Graph {
         return this.edgesCount;
     }
 
+    private void getSubSets(Set<Vertex> vertices, Set<Set<Vertex>> subsets) {
+        if (vertices.size() <= 1) return;
+
+        for (Vertex v: vertices) {
+            Set<Vertex> subset = new HashSet<>(vertices);
+            subset.remove(v);
+            subsets.add(subset);
+            this.getSubSets(subset, subsets);
+        }
+    }
+
     /**
      * Definition 1.1.9 Zusammenhangskomponente
-     * Sei G = (V, E) ein ungerichteter Graph. Eine Zusammenhangskomponente
-     * von G ist eine Teilmenge Z ⊆ V von Knoten, so dass gilt:
+     * Sei G = (V, E) ein ungerichteter Graph.
+     * Eine Zusammenhangskomponente von G ist eine Teilmenge Z ⊆ V von Knoten, so dass gilt:
      * ∀v, w ∈ Z : es existiert in G ein Weg von v nach w
      * ∀v not(∈) Z : ∃ w ∈ Z : es existiert in G kein Weg von v nach w
      */
-    private Set<Graph> connectedComponents() {
-        return null;
+    // @TODO Implementieren
+    public Set<Graph> connectedComponents() {
+        if (this.isConnected()) return this.connectedComponents;
+
+        Set<Set<Vertex>> vertices = new HashSet<>();
+        Set<Set<Edge>> edges = new HashSet<>();
+
+        for (Vertex v: this.vertices) {
+
+        }
+
+        /*Set<Set<Vertex>> subsets = new HashSet<>(new HashSet<>());
+        Set<Vertex> tmp = new HashSet<>(this.vertices);
+        // Eine Kombination ohne Wiederholung Z als Teilmengen von V erstellen
+        this.getSubSets(tmp, subsets);
+
+        // ∀v, w ∈ Z : es existiert in G ein Weg von v nach w
+        Set<Set<Vertex>> wayExistsSubsets = new HashSet<>();
+        for (Set<Vertex> subset: subsets) {
+            if (this.isConnected(subset)) {
+                wayExistsSubsets.add(subset);
+            }
+        }*/
+
+        return this.connectedComponents;
     }
 
+    // Tiefensuche (Gibt alle von s aus erreichbaren Knoten an)
+    public Set<Vertex> depthFirstSearch(Vertex s) {
+        Stack<Vertex> Q = new Stack<>();
+        HashMap<Vertex, List<Vertex>> N = new HashMap<>();
+        Set<Vertex> result = new HashSet<>();
 
-    public Set<Vertex> breadthFirstSearch() {
-        return new HashSet<>();
+        Q.push(s);
+        N.put(s, new ArrayList<>(s.getReachableNeighbours()));
+
+        while (!Q.isEmpty()) {
+            Vertex v = Q.peek();
+
+            if (N.get(v).size() != 0) {
+                Vertex v2 = N.get(v).get(0);
+                N.get(v).remove(v2);
+                if (!result.contains(v2)) {
+                    Q.push(v2);
+                    result.add(v2);
+                    N.put(v2, new ArrayList<>(v2.getReachableNeighbours()));
+                }
+            } else {
+                Q.pop();
+            }
+        }
+        result.remove(s);
+        System.out.println("DFS Ergebnisse für " + s.getName() + ":\n" + result.toString() + "\n");
+        return result;
+    }
+
+    // Breitensuche (Gibt alle von s aus erreichbaren Knoten an)[wie getReachableNeighbours() blos rekursiv]
+    public Set<Vertex> breadthFirstSearch(Vertex s) {
+        Queue<Vertex> Q = new LinkedList<>();
+        HashMap<Vertex, List<Vertex>> N = new HashMap<>();
+        Set<Vertex> result = new HashSet<>();
+
+        Q.add(s);
+        N.put(s, new ArrayList<>(s.getReachableNeighbours()));
+
+        while (!Q.isEmpty()) {
+            Vertex v = Q.peek();
+
+            if (N.get(v).size() != 0) {
+                Vertex v2 = N.get(v).get(0);
+                N.get(v).remove(v2);
+
+                if (!result.contains(v2)) {
+                    Q.add(v2);
+                    result.add(v2);
+                    N.put(v2, new ArrayList<>(v2.getReachableNeighbours()));
+                }
+            } else {
+                Q.remove();
+            }
+        }
+        result.remove(s);
+        System.out.println("BFS Ergebnisse für " + s.getName() + ":\n" + result.toString() + "\n");
+        return result;
     }
 
     public static void main(String[] args) {
         Graph g = Factory.createDirectedGraph118();
         for(Vertex x: g.vertices) {
             x.getReachableNeighbours();
+            x.getNeighbours();
             x.indeg();
             x.outdeg();
-            System.out.println("isDirected: " + g.isDirected());
-            System.out.println();
+            x.getOutgoingEdges();
+            x.getIncomingEdges();
+            x.getName();
+            g.depthFirstSearch(x);
+            g.breadthFirstSearch(x);
         }
+        System.out.println("isDirected: " + g.isDirected());
     }
 }
