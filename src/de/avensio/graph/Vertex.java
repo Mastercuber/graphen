@@ -17,21 +17,15 @@ public class Vertex {
      * @return neighbours
      */
     public Set<Vertex> getNeighbours() {
-        Set<Vertex> vertices = new HashSet<>();
+        Set<Vertex> neighbours = new HashSet<>();
         for (Edge e: this.outgoingEdges) {
-            vertices.add(e.getTo());
-            if (e.hasUndirectedOpposite()) {
-                vertices.remove(e.getFrom());
-            }
+            neighbours.add(e.getTo());
         }
         for (Edge e: this.incomingEdges) {
-            vertices.add(e.getFrom());
-            if (e.hasUndirectedOpposite()) {
-                vertices.remove(e.getTo());
-            }
+            neighbours.add(e.getFrom());
         }
 
-        return vertices;
+        return neighbours;
     }
 
     /**
@@ -40,11 +34,11 @@ public class Vertex {
      * @return reachableNeighbours
      */
     public Set<Vertex> getReachableNeighbours() {
-        Set<Vertex> vertices = new HashSet<>();
+        Set<Vertex> neighbours = new HashSet<>();
         for (Edge e: this.outgoingEdges) {
-            vertices.add(e.getTo());
+            neighbours.add(e.getTo());
         }
-        return vertices;
+        return neighbours;
     }
 
     public String getName() { return this.name; }

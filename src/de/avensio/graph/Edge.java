@@ -5,7 +5,6 @@ public class Edge {
     private Vertex to;
     private boolean isDirected = true;
     private double weight = 0.0;
-    private Edge undirectedOpposite;
 
     public Edge(Vertex a, Vertex b) {
         this.from = a;
@@ -42,22 +41,5 @@ public class Edge {
 
     public void setWeight(double weight) {
         this.weight = weight;
-    }
-
-    public boolean hasUndirectedOpposite() {
-        return this.undirectedOpposite != null;
-    }
-
-    public Edge getUndirectedOpposite() {
-        return this.undirectedOpposite;
-    }
-
-    /**
-     * Beim erstellen eines Graphen muss, wenn eine Kante gerichtet ist
-     * die engegengesetzte Kante hinzugefügt werden
-     * @param undirectedOpposite Edge
-     */
-    public void setUndirectedOpposite(Edge undirectedOpposite) {
-        this.undirectedOpposite = undirectedOpposite;
     }
 }
